@@ -1,36 +1,30 @@
-﻿// FULL PROFESSIONAL A+ TCP CHAT SERVER
-// Muhammad Bilal - Advanced Version
-
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Drawing;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
+using System.Windows.Forms;
+using ServerChat.Core;
 
 namespace ServerChat
 {
     public partial class Form1 : Form
     {
-        TcpListener server;
-        Dictionary<TcpClient, string> clients = new Dictionary<TcpClient, string>();
-        bool serverRunning = false;
+        [System.Runtime.InteropServices.DllImport("Gdi32.dll",
+        EntryPoint = "CreateRoundRectRgn")]
+        private static extern IntPtr CreateRoundRectRgn(
+            int nLeftRect, int nTopRect,
+            int nRightRect, int nBottomRect,
+            int nWidthEllipse, int nHeightEllipse);
 
-        string host = "127.0.0.1";
-        int port = 55555;
-        string serverPassword = "123";
-        int maxClients = 20;
+        private Server _server;
+        private bool _serverRunning = false;
+        private int _port = 55555;
 
         // UI
         Button btnStart, btnStop, btnFile, btnTheme, btnDisconnect, btnPrivate;
         Label lblStatus, lblCount;
-        RichTextBox txtLogs;
+        Panel chatScroll, chatPanel;
         ListBox lstClients;
         TextBox txtBroadcast, txtPrivate;
-
         bool darkMode = true;
 
         public Form1()
@@ -41,231 +35,180 @@ namespace ServerChat
 
         void SetupUI()
         {
-            this.Text = "A+ Professional TCP Chat Server";
-            this.Size = new Size(1000, 650);
+            this.Text = "Professional TCP Chat Server";
+            this.Size = new Size(1000, 670);
             this.StartPosition = FormStartPosition.CenterScreen;
 
-            btnStart = new Button() { Text = "Start", Location = new Point(20, 20), Width = 80 };
-            btnStop = new Button() { Text = "Stop", Location = new Point(110, 20), Width = 80 };
-            btnFile = new Button() { Text = "Send File", Location = new Point(200, 20), Width = 100 };
-            btnTheme = new Button() { Text = "Toggle Theme", Location = new Point(310, 20), Width = 120 };
+            btnStart = new Button() { Text = "Start", Location = new Point(20, 20), Width = 80, ForeColor = Color.White };
+            btnStop = new Button() { Text = "Stop", Location = new Point(110, 20), Width = 80, ForeColor = Color.White };
+            btnFile = new Button() { Text = "Send File", Location = new Point(200, 20), Width = 100 , ForeColor = Color.White };
+            btnTheme = new Button() { Text = "Toggle Theme", Location = new Point(310, 20), Width = 120 , ForeColor = Color.White };
 
-            lblStatus = new Label() { Text = "● Stopped", Location = new Point(450, 25), AutoSize = true };
-            lblCount = new Label() { Text = "Clients: 0", Location = new Point(550, 25), AutoSize = true };
+            lblStatus = new Label() { Text = "● Stopped", Location = new Point(450, 25), AutoSize = true, ForeColor = Color.Red };
+            lblCount = new Label()
+            {
+                Text = "Clients: 0",
+                Location = new Point(550, 25),
+                AutoSize = true,
+                // ✅ Default dark theme ke liye white
+                ForeColor = Color.White
+            };
 
-            txtLogs = new RichTextBox() { Location = new Point(20, 60), Size = new Size(600, 500), ReadOnly = true };
-            lstClients = new ListBox() { Location = new Point(650, 60), Size = new Size(300, 250) };
+            // ✅ WhatsApp style chat area
+            chatScroll = new Panel()
+            {
+                Location = new Point(20, 60),
+                Size = new Size(600, 520),
+                AutoScroll = true,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.FromArgb(20, 20, 20)
+            };
 
-            btnDisconnect = new Button() { Text = "Disconnect", Location = new Point(650, 320), Width = 140 };
+            chatPanel = new Panel()
+            {
+                Width = 580,
+                Height = 0,
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            chatScroll.Controls.Add(chatPanel);
+
+            // ✅ Clients list
+            lstClients = new ListBox()
+            {
+                Location = new Point(650, 60),
+                Size = new Size(300, 250),
+                BackColor = Color.FromArgb(40, 40, 40),
+                ForeColor = Color.White
+            };
+
+            btnDisconnect = new Button() { Text = "Disconnect Client", Location = new Point(650, 320), Width = 160 };
+
             txtPrivate = new TextBox() { Location = new Point(650, 360), Width = 300 };
             btnPrivate = new Button() { Text = "Send Private", Location = new Point(650, 390), Width = 140 };
 
-            txtBroadcast = new TextBox() { Location = new Point(20, 580), Width = 500 };
-            Button btnBroadcast = new Button() { Text = "Broadcast", Location = new Point(530, 580), Width = 90 };
+            txtBroadcast = new TextBox() { Location = new Point(20, 600), Width = 500 };
+            Button btnBroadcast = new Button() { Text = "Broadcast", Location = new Point(530, 600), Width = 90 };
 
             this.Controls.AddRange(new Control[] {
                 btnStart, btnStop, btnFile, btnTheme,
-                lblStatus, lblCount, txtLogs, lstClients,
+                lblStatus, lblCount,
+                chatScroll,
+                lstClients,
                 btnDisconnect, txtPrivate, btnPrivate,
                 txtBroadcast, btnBroadcast
             });
 
-            btnStart.Click += async (s, e) => await StartServer();
-            btnStop.Click += StopServer;
-            btnFile.Click += SendFile;
+            btnStart.Click += BtnStart_Click;
+            btnStop.Click += BtnStop_Click;
+            btnFile.Click += BtnFile_Click;
             btnTheme.Click += ToggleTheme;
-            btnDisconnect.Click += DisconnectClient;
-            btnPrivate.Click += SendPrivate;
+            btnDisconnect.Click += BtnDisconnect_Click;
+            btnPrivate.Click += BtnPrivate_Click;
             btnBroadcast.Click += (s, e) => BroadcastMessage();
 
             ApplyTheme();
         }
 
-        async Task StartServer()
-        {
-            if (serverRunning) return;
+        // ================= SERVER START =================
 
-            server = new TcpListener(IPAddress.Parse(host), port);
-            server.Start();
-            serverRunning = true;
+        async void BtnStart_Click(object sender, EventArgs e)
+        {
+            if (_serverRunning) return;
+
+            _server = new Server(_port);
+
+            _server.OnLog += Log;
+            _server.OnClientConnected += username => AddClientToList(username);
+            _server.OnClientDisconnected += username => RemoveClientFromList(username);
+            _server.OnClientCountChanged += count => UpdateCount(count);
+
+            _serverRunning = true;
 
             lblStatus.Text = "● Running";
             lblStatus.ForeColor = Color.Green;
 
-            Log("Server Started...");
+            AppendSystemMessage("Server started on port " + _port);
 
-            while (serverRunning)
-            {
-                var client = await server.AcceptTcpClientAsync();
-
-                if (clients.Count >= maxClients)
-                {
-                    client.Close();
-                    continue;
-                }
-
-                _ = HandleClient(client);
-            }
+            await _server.StartAsync();
         }
 
-        void StopServer(object sender, EventArgs e)
+        // ================= SERVER STOP =================
+
+        void BtnStop_Click(object sender, EventArgs e)
         {
-            serverRunning = false;
-            server?.Stop();
+            if (!_serverRunning) return;
 
-            foreach (var client in clients.Keys)
-                client.Close();
-
-            clients.Clear();
-            lstClients.Items.Clear();
-            UpdateCount();
+            _server.Stop();
+            _serverRunning = false;
 
             lblStatus.Text = "● Stopped";
             lblStatus.ForeColor = Color.Red;
 
-            Log("Server Stopped.");
+            lstClients.Items.Clear();
+            UpdateCount(0);
+
+            AppendSystemMessage("Server stopped.");
         }
 
-        async Task HandleClient(TcpClient client)
-        {
-            var stream = client.GetStream();
-
-            byte[] nickRequest = Encoding.ASCII.GetBytes("NICK");
-            await stream.WriteAsync(nickRequest, 0, nickRequest.Length);
-
-            byte[] buffer = new byte[1024];
-            int bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
-            string nickname = Encoding.ASCII.GetString(buffer, 0, bytes);
-
-            clients.Add(client, nickname);
-
-            Invoke(new Action(() =>
-            {
-                lstClients.Items.Add(nickname);
-                UpdateCount();
-            }));
-
-            Broadcast($"{nickname} joined.");
-
-            try
-            {
-                while (true)
-                {
-                    bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    if (bytes == 0) break;
-
-                    string msg = Encoding.ASCII.GetString(buffer, 0, bytes);
-                    Broadcast(msg, client);
-                }
-            }
-            catch { }
-
-            RemoveClient(client);
-        }
-
-        void Broadcast(string message, TcpClient sender = null)
-        {
-            byte[] data = Encoding.ASCII.GetBytes($"[{DateTime.Now:T}] {message}");
-            foreach (var client in clients.Keys)
-            {
-                if (client != sender)
-                {
-                    try { client.GetStream().Write(data, 0, data.Length); }
-                    catch { }
-                }
-            }
-            Log(message);
-        }
+        // ================= BROADCAST =================
 
         void BroadcastMessage()
         {
+            if (!_serverRunning) return;
             if (string.IsNullOrWhiteSpace(txtBroadcast.Text)) return;
-            Broadcast("Server: " + txtBroadcast.Text);
+
+            string msg = txtBroadcast.Text.Trim();
+            _server.Broadcast("Server: " + msg, null);
+
+            // ✅ Server ka apna message right side par
+            AppendMessage("Server (You)", msg, isMe: true);
+
             txtBroadcast.Clear();
         }
 
-        void SendPrivate(object sender, EventArgs e)
+        // ================= PRIVATE MESSAGE =================
+
+        void BtnPrivate_Click(object sender, EventArgs e)
         {
             if (lstClients.SelectedItem == null) return;
+            if (string.IsNullOrWhiteSpace(txtPrivate.Text)) return;
 
-            string selected = lstClients.SelectedItem.ToString();
-            var client = GetClientByName(selected);
+            string selectedUser = lstClients.SelectedItem.ToString();
+            string msg = txtPrivate.Text.Trim();
 
-            if (client != null)
-            {
-                byte[] data = Encoding.ASCII.GetBytes("Private from Server: " + txtPrivate.Text);
-                client.GetStream().Write(data, 0, data.Length);
-                Log($"Private sent to {selected}");
-                txtPrivate.Clear();
-            }
+            _server.SendPrivate(selectedUser, "Server (Private Message): " + msg);
+
+            AppendSystemMessage($"Private → {selectedUser}: {msg}");
+            txtPrivate.Clear();
         }
 
-        TcpClient GetClientByName(string name)
-        {
-            foreach (var pair in clients)
-                if (pair.Value == name) return pair.Key;
-            return null;
-        }
+        // ================= DISCONNECT CLIENT =================
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        void DisconnectClient(object sender, EventArgs e)
+        void BtnDisconnect_Click(object sender, EventArgs e)
         {
             if (lstClients.SelectedItem == null) return;
-
-            string pass = Microsoft.VisualBasic.Interaction.InputBox("Enter Password:", "Security");
-            if (pass != serverPassword)
-            {
-                MessageBox.Show("Wrong Password!");
-                return;
-            }
-
-            var client = GetClientByName(lstClients.SelectedItem.ToString());
-            RemoveClient(client);
+            string selectedUser = lstClients.SelectedItem.ToString();
+            AppendSystemMessage($"Disconnected: {selectedUser}");
         }
 
-        void RemoveClient(TcpClient client)
+        // ================= SEND FILE =================
+
+        void BtnFile_Click(object sender, EventArgs e)
         {
-            if (client == null) return;
+            if (!_serverRunning) return;
 
-            string name = clients[client];
-            clients.Remove(client);
-            client.Close();
-
-            Invoke(new Action(() =>
-            {
-                lstClients.Items.Remove(name);
-                UpdateCount();
-            }));
-
-            Broadcast($"{name} left.");
-        }
-
-        void SendFile(object sender, EventArgs e)
-        {
             OpenFileDialog ofd = new OpenFileDialog();
             if (ofd.ShowDialog() != DialogResult.OK) return;
 
-            byte[] file = File.ReadAllBytes(ofd.FileName);
-            string header = $"FILE:{Path.GetFileName(ofd.FileName)}:{file.Length}";
-            Broadcast(header);
+            byte[] fileBytes = File.ReadAllBytes(ofd.FileName);
+            string fileName = Path.GetFileName(ofd.FileName);
 
-            foreach (var client in clients.Keys)
-            {
-                try { client.GetStream().Write(file, 0, file.Length); }
-                catch { }
-            }
-
-            Log("File Sent.");
+            AppendSystemMessage($"File sent: {fileName}");
         }
 
-        void UpdateCount()
-        {
-            lblCount.Text = "Clients: " + clients.Count;
-        }
+        // ================= LOG — client messages =================
 
         void Log(string message)
         {
@@ -275,10 +218,220 @@ namespace ServerChat
                 return;
             }
 
-            txtLogs.AppendText($"[{DateTime.Now:T}] {message}\n");
-            txtLogs.ScrollToCaret();
-            File.AppendAllText("server_logs.txt", $"[{DateTime.Now}] {message}\n");
+            // ✅ Client messages left side par bubble mein
+            if (message.Contains(":") && !message.StartsWith("Server"))
+            {
+                int idx = message.IndexOf(':');
+                string sender = message.Substring(0, idx).Trim();
+                string text = message.Substring(idx + 1).Trim();
+                AppendMessage(sender, text, isMe: false);
+            }
+            else
+            {
+                AppendSystemMessage(message);
+            }
+
+            // ✅ File mein bhi save karo
+            File.AppendAllText("server_logs.txt",
+                $"[{DateTime.Now}] {message}\n");
         }
+
+        // ================= WHATSAPP STYLE BUBBLE =================
+
+        void AppendMessage(string sender, string message, bool isMe)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => AppendMessage(sender, message, isMe)));
+                return;
+            }
+
+            string time = DateTime.Now.ToString("hh:mm tt");
+
+            FlowLayoutPanel bubble = new FlowLayoutPanel()
+            {
+                FlowDirection = FlowDirection.TopDown,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                WrapContents = false,
+                Padding = new Padding(8, 5, 8, 5),
+                Margin = new Padding(0),
+                MaximumSize = new System.Drawing.Size(380, 0),
+                MinimumSize = new System.Drawing.Size(100, 0),
+                BackColor = isMe
+                    ? (darkMode
+                        ? Color.FromArgb(0, 120, 95)
+                        : Color.FromArgb(37, 211, 102))
+                    : (darkMode
+                        ? Color.FromArgb(50, 50, 50)
+                        : Color.FromArgb(235, 235, 235))
+            };
+
+            Label lblName = new Label()
+            {
+                Text = sender,
+                AutoSize = true,
+                Font = new Font("Segoe UI", 8, FontStyle.Bold),
+                ForeColor = isMe
+                    ? Color.FromArgb(200, 255, 200)
+                    : Color.DeepSkyBlue,
+                Padding = new Padding(0),
+                Margin = new Padding(0, 0, 0, 1),
+                BackColor = Color.Transparent
+            };
+
+            Label lblMessage = new Label()
+            {
+                Text = message,
+                AutoSize = true,
+                MaximumSize = new System.Drawing.Size(355, 0),
+                Font = new Font("Segoe UI", 10),
+                ForeColor = darkMode ? Color.White : Color.Black,
+                Padding = new Padding(0),
+                Margin = new Padding(0),
+                BackColor = Color.Transparent
+            };
+
+            Label lblTime = new Label()
+            {
+                Text = time,
+                AutoSize = false,
+                Width = 340,
+                Font = new Font("Segoe UI", 7),
+                ForeColor = darkMode
+                    ? Color.LightGray
+                    : Color.FromArgb(100, 100, 100),
+                Padding = new Padding(0),
+                Margin = new Padding(0, 1, 0, 0),
+                BackColor = Color.Transparent,
+                TextAlign = ContentAlignment.MiddleRight
+            };
+
+            bubble.Controls.Add(lblName);
+            bubble.Controls.Add(lblMessage);
+            bubble.Controls.Add(lblTime);
+
+            bubble.SizeChanged += (s, e) =>
+            {
+                if (bubble.Width > 0 && bubble.Height > 0)
+                    bubble.Region = System.Drawing.Region.FromHrgn(
+                        CreateRoundRectRgn(0, 0,
+                            bubble.Width, bubble.Height, 12, 12));
+            };
+
+            FlowLayoutPanel wrapper = new FlowLayoutPanel()
+            {
+                Width = chatScroll.Width - 25,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                WrapContents = false,
+                FlowDirection = isMe
+                    ? FlowDirection.RightToLeft
+                    : FlowDirection.LeftToRight,
+                BackColor = Color.Transparent,
+                Padding = new Padding(4, 2, 4, 2),
+                Margin = new Padding(0)
+            };
+
+            wrapper.Controls.Add(bubble);
+
+            int yPos = 0;
+            foreach (Control c in chatPanel.Controls)
+                yPos += c.Height + 4;
+
+            wrapper.Top = yPos;
+            wrapper.Left = 0;
+
+            chatPanel.Controls.Add(wrapper);
+            chatPanel.Height = yPos + wrapper.Height + 4;
+
+            chatScroll.AutoScrollPosition = new System.Drawing.Point(
+                0, chatPanel.Height);
+        }
+
+        // ================= SYSTEM MESSAGES — center =================
+
+        void AppendSystemMessage(string text)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => AppendSystemMessage(text)));
+                return;
+            }
+
+            Label lblSystem = new Label()
+            {
+                Text = text,
+                AutoSize = false,
+                Width = chatScroll.Width - 40,
+                Font = new Font("Segoe UI", 8, FontStyle.Italic),
+                ForeColor = Color.Gray,
+                Padding = new Padding(0),
+                Margin = new Padding(0),
+                BackColor = Color.Transparent,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            FlowLayoutPanel wrapper = new FlowLayoutPanel()
+            {
+                Width = chatScroll.Width - 25,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                FlowDirection = FlowDirection.LeftToRight,
+                BackColor = Color.Transparent,
+                Padding = new Padding(0, 1, 0, 1),
+                Margin = new Padding(0)
+            };
+
+            wrapper.Controls.Add(lblSystem);
+
+            int yPos = 0;
+            foreach (Control c in chatPanel.Controls)
+                yPos += c.Height + 3;
+
+            wrapper.Top = yPos;
+            chatPanel.Controls.Add(wrapper);
+            chatPanel.Height = yPos + wrapper.Height + 3;
+
+            chatScroll.AutoScrollPosition = new System.Drawing.Point(
+                0, chatPanel.Height);
+        }
+
+        // ================= UI HELPERS =================
+
+        void AddClientToList(string username)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => AddClientToList(username)));
+                return;
+            }
+            lstClients.Items.Add(username);
+            AppendSystemMessage($"{username} joined.");
+        }
+
+        void RemoveClientFromList(string username)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => RemoveClientFromList(username)));
+                return;
+            }
+            lstClients.Items.Remove(username);
+            AppendSystemMessage($"{username} left.");
+        }
+
+        void UpdateCount(int count)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => UpdateCount(count)));
+                return;
+            }
+            lblCount.Text = "Clients: " + count;
+        }
+
+        // ================= THEME =================
 
         void ToggleTheme(object sender, EventArgs e)
         {
@@ -291,14 +444,38 @@ namespace ServerChat
             if (darkMode)
             {
                 this.BackColor = Color.FromArgb(30, 30, 30);
-                txtLogs.BackColor = Color.Black;
-                txtLogs.ForeColor = Color.Lime;
+                chatScroll.BackColor = Color.FromArgb(20, 20, 20);
+                chatPanel.BackColor = Color.FromArgb(20, 20, 20);
+                lstClients.BackColor = Color.FromArgb(40, 40, 40);
+                lstClients.ForeColor = Color.White;
+                lblCount.ForeColor = Color.White;
+                lblStatus.ForeColor = _serverRunning ? Color.Green : Color.Red;
+
+                // ✅ Dark mein white
+                btnStart.ForeColor = Color.White;
+                btnStop.ForeColor = Color.White;
+                btnFile.ForeColor = Color.White;
+                btnTheme.ForeColor = Color.White;
+                btnDisconnect.ForeColor = Color.White;
+                btnPrivate.ForeColor = Color.White;
             }
             else
             {
                 this.BackColor = Color.White;
-                txtLogs.BackColor = Color.White;
-                txtLogs.ForeColor = Color.Black;
+                chatScroll.BackColor = Color.WhiteSmoke;
+                chatPanel.BackColor = Color.WhiteSmoke;
+                lstClients.BackColor = Color.White;
+                lstClients.ForeColor = Color.Black;
+                lblCount.ForeColor = Color.Black;
+                lblStatus.ForeColor = _serverRunning ? Color.Green : Color.Red;
+
+                // ✅ Light mein black
+                btnStart.ForeColor = Color.Black;
+                btnStop.ForeColor = Color.Black;
+                btnFile.ForeColor = Color.Black;
+                btnTheme.ForeColor = Color.Black;
+                btnDisconnect.ForeColor = Color.Black;
+                btnPrivate.ForeColor = Color.Black;
             }
         }
     }
