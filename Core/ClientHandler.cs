@@ -118,7 +118,13 @@ namespace ServerChat.Core
                         {
                             string encryptedMsg = msg.Substring(4);
                             string cleanMsg = EncryptionService.Decrypt(encryptedMsg);
-                            _db.SaveMessage(_username, "all", cleanMsg);
+
+                            // ✅ Sirf normal messages save karo — FILE nahi
+                            if (!cleanMsg.StartsWith("FILE:"))
+                            {
+                                _db.SaveMessage(_username, "all", cleanMsg);
+                            }
+
                             _server.Broadcast($"{_username}: {cleanMsg}", _client);
                         }
                         // ✅ TYPING packet handle karo
@@ -130,6 +136,8 @@ namespace ServerChat.Core
                         }
                         else if (msg.StartsWith("FILE:"))
                         {
+                            // ✅ File ko database mein save mat karo
+                            // ✅ Sirf log karo
                             _server.Log($"File received from {_username}");
                         }
                     }

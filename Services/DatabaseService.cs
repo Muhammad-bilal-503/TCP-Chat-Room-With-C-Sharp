@@ -53,9 +53,12 @@ namespace ServerChat.Services
         }
 
         // ================= SAVE MESSAGE =================
-
         public void SaveMessage(string sender, string receiver, string message)
         {
+            // ✅ FILE messages database mein save mat karo
+            if (message.StartsWith("FILE:") || message.Contains("MSG:FILE:"))
+                return;
+
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
