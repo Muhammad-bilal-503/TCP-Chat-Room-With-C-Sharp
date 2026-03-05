@@ -1,26 +1,33 @@
-﻿using System.Collections.Generic;
-
-namespace ServerChat.Services
+﻿namespace ServerChat.Services
 {
     public class AuthService
     {
-        private static Dictionary<string, string> _users = new Dictionary<string, string>();
+        private DatabaseService _db;
 
-        public bool Register(string username, string password)
+        public AuthService()
         {
-            if (_users.ContainsKey(username))
-                return false;
-
-            _users.Add(username, password);
-            return true;
+            _db = new DatabaseService();
         }
 
-        public bool Login(string username, string password)
+        public string Register(string username, string password)
         {
-            if (_users.ContainsKey(username) && _users[username] == password)
-                return true;
+            if (_db.UserExists(username))
+                return "USER_EXISTS";
 
-            return false;
+            string hash = EncryptionService.HashPassword(password);
+            _db.RegisterUser(username, hash);
+
+            return "REGISTER_SUCCESS";
+        }
+
+        public string Login(string username, string password)
+        {
+            string hash = EncryptionService.HashPassword(password);
+
+            if (_db.ValidateUser(username, hash))
+                return "LOGIN_SUCCESS";
+
+            return "LOGIN_FAILED";
         }
     }
 }
