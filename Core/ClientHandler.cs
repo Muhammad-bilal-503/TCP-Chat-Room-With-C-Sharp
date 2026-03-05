@@ -90,18 +90,19 @@ namespace ServerChat.Core
                     _username = username;
                     _server.AddClient(_client, _username);
 
+                    // ✅ Login successful, ab chat session start karo
                     await SendPacket("AUTH_SUCCESS");
                     _server.Broadcast($"{_username} joined the chat.", _client);
 
-                    // ✅ Chat history bhejo
-                    var history = _server.GetChatHistory();
+                    // ✅ Sirf us user ki history bhejo
+                    var history = _server.GetChatHistory(_username);
                     foreach (var item in history)
                     {
-                        // ✅ Encrypt karke bhejo
+                        //Encrypt each message before sending
                         string historyMsg = EncryptionService.Encrypt(
                             $"HISTORY:{item.Sender}:{item.Message}:{item.Time}");
                         await SendPacket($"MSG:{historyMsg}");
-                        // ✅ Thoda delay taake packets mix na hon
+                        // Thoda delay do taaki client ko process karne ka time mile
                         await Task.Delay(10);
                     }
 
@@ -116,11 +117,10 @@ namespace ServerChat.Core
                         if (msg.StartsWith("MSG:"))
                         {
                             string encryptedMsg = msg.Substring(4);
-                            //Decrypt karo
                             string cleanMsg = EncryptionService.Decrypt(encryptedMsg);
 
-                            // ✅ Database mein save karo
-                            _db.SaveMessage(_username, cleanMsg);
+                            // ✅ 'all' receiver — broadcast message
+                            _db.SaveMessage(_username, "all", cleanMsg);
 
                             _server.Broadcast($"{_username}: {cleanMsg}", _client);
                         }

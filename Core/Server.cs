@@ -172,10 +172,11 @@ namespace ServerChat.Core
         }
 
         // ✅ Recent messages load karo
-        public List<(string Sender, string Message, string Time)> GetChatHistory()
+        public List<(string Sender, string Message, string Time)> GetChatHistory(string username)
         {
             var db = new ServerChat.Services.DatabaseService();
-            return db.GetRecentMessages(50);
+            // ✅ Sirf us user ki history
+            return db.GetUserMessages(username);
         }
     }
 }

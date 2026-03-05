@@ -41,11 +41,12 @@ namespace ServerChat.Services
             {
                 connection.Open();
                 string query = @"CREATE TABLE IF NOT EXISTS Messages (
-                    Id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Sender    TEXT    NOT NULL,
-                    Message   TEXT    NOT NULL,
-                    SentAt    TEXT    NOT NULL
-                );";
+                    Id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Sender   TEXT NOT NULL,
+                    Receiver TEXT NOT NULL DEFAULT 'all',
+                    Message  TEXT NOT NULL,
+                    SentAt   TEXT NOT NULL
+        );";
                 using (var command = new SQLiteCommand(query, connection))
                     command.ExecuteNonQuery();
             }
@@ -53,16 +54,17 @@ namespace ServerChat.Services
 
         // ================= SAVE MESSAGE =================
 
-        public void SaveMessage(string sender, string message)
+        public void SaveMessage(string sender, string receiver, string message)
         {
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                string query = @"INSERT INTO Messages (Sender, Message, SentAt)
-                                 VALUES (@sender, @message, @sentAt)";
+                string query = @"INSERT INTO Messages (Sender, Receiver, Message, SentAt)
+                         VALUES (@sender, @receiver, @message, @sentAt)";
                 using (var command = new SQLiteCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@sender",  sender);
+                    command.Parameters.AddWithValue("@sender", sender);
+                    command.Parameters.AddWithValue("@receiver", receiver);
                     command.Parameters.AddWithValue("@message", message);
                     command.Parameters.AddWithValue("@sentAt",
                         DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -73,7 +75,8 @@ namespace ServerChat.Services
 
         // ================= LOAD MESSAGES =================
 
-        public List<(string Sender, string Message, string Time)> GetRecentMessages(int count = 50)
+        // ✅ Sirf us user ki messages jo usne bheje ya use mile
+        public List<(string Sender, string Message, string Time)> GetUserMessages(string username, int count = 50)
         {
             var messages = new List<(string, string, string)>();
 
@@ -81,24 +84,28 @@ namespace ServerChat.Services
             {
                 connection.Open();
                 string query = $@"SELECT Sender, Message, SentAt
-                                  FROM Messages
-                                  ORDER BY Id DESC
-                                  LIMIT {count}";
+                          FROM Messages
+                          WHERE Sender = @username
+                          OR Receiver = @username
+                          ORDER BY Id DESC
+                          LIMIT {count}";
                 using (var command = new SQLiteCommand(query, connection))
-                using (var reader = command.ExecuteReader())
                 {
-                    while (reader.Read())
+                    command.Parameters.AddWithValue("@username", username);
+                    using (var reader = command.ExecuteReader())
                     {
-                        messages.Add((
-                            reader["Sender"].ToString(),
-                            reader["Message"].ToString(),
-                            reader["SentAt"].ToString()
-                        ));
+                        while (reader.Read())
+                        {
+                            messages.Add((
+                                reader["Sender"].ToString(),
+                                reader["Message"].ToString(),
+                                reader["SentAt"].ToString()
+                            ));
+                        }
                     }
                 }
             }
 
-            // ✅ Reverse karo — purane pehle, naye baad mein
             messages.Reverse();
             return messages;
         }
