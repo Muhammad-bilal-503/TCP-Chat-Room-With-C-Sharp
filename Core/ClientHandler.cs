@@ -118,11 +118,15 @@ namespace ServerChat.Core
                         {
                             string encryptedMsg = msg.Substring(4);
                             string cleanMsg = EncryptionService.Decrypt(encryptedMsg);
-
-                            // ✅ 'all' receiver — broadcast message
                             _db.SaveMessage(_username, "all", cleanMsg);
-
                             _server.Broadcast($"{_username}: {cleanMsg}", _client);
+                        }
+                        // ✅ TYPING packet handle karo
+                        else if (msg.StartsWith("TYPING:"))
+                        {
+                            // ✅ Baaki sab clients ko forward karo — sender ko nahi
+                            string typingData = msg.Substring(7);
+                            _server.BroadcastTyping(typingData, _client);
                         }
                         else if (msg.StartsWith("FILE:"))
                         {

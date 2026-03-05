@@ -178,5 +178,51 @@ namespace ServerChat.Core
             // ✅ Sirf us user ki history
             return db.GetUserMessages(username);
         }
+
+        // ✅ Typing indicator broadcast
+        public void BroadcastTyping(string encryptedData, TcpClient sender)
+        {
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(
+                "TYPING:" + encryptedData);
+
+            lock (_clients)
+            {
+                foreach (var client in _clients.Keys)
+                {
+                    if (client != sender)
+                    {
+                        try
+                        {
+                            client.GetStream().Write(data, 0, data.Length);
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+
+        // ✅ Username se client forcefully disconnect karo
+        public void ForceDisconnect(string username)
+        {
+            TcpClient targetClient = null;
+
+            lock (_clients)
+            {
+                foreach (var pair in _clients)
+                {
+                    if (pair.Value == username)
+                    {
+                        targetClient = pair.Key;
+                        break;
+                    }
+                }
+            }
+
+            if (targetClient != null)
+            {
+                RemoveClient(targetClient);
+                targetClient.Close();
+            }
+        }
     }
 }

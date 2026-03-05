@@ -188,9 +188,33 @@ namespace ServerChat
 
         void BtnDisconnect_Click(object sender, EventArgs e)
         {
-            if (lstClients.SelectedItem == null) return;
+            if (lstClients.SelectedItem == null)
+            {
+                AppendSystemMessage("Select the Client First.");
+                return;
+            }
+
+            // ✅ Password check
+            string pass = Microsoft.VisualBasic.Interaction.InputBox(
+                "If You Disconnect the Client Enter Password:",
+                "Security Check");
+
+            if (pass != "321")
+            {
+                MessageBox.Show(
+                    "Wrong password!",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
             string selectedUser = lstClients.SelectedItem.ToString();
-            AppendSystemMessage($"Disconnected: {selectedUser}");
+
+            // ✅ Actually disconnect karo
+            _server.ForceDisconnect(selectedUser);
+
+            AppendSystemMessage($"{selectedUser} disconnected by server.");
         }
 
         // ================= SEND FILE =================
@@ -206,6 +230,11 @@ namespace ServerChat
             string fileName = Path.GetFileName(ofd.FileName);
 
             AppendSystemMessage($"File sent: {fileName}");
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
 
         // ================= LOG — client messages =================
