@@ -263,10 +263,7 @@ When server sends a file:
 
 All data transmitted between client and server is encrypted:
 
-```
-Plain Text  ──▶  AES Encrypt  ──▶  Base64 String  ──▶  Network
-Network     ──▶  Base64 Decode ──▶  AES Decrypt   ──▶  Plain Text
-```
+![AES_Encryption_Flow](AES_Encryption_Flow.png)
 
 - **Key**: 16-character shared secret key
 - **IV**: 16-character initialization vector
