@@ -179,26 +179,6 @@ Every message travels through the server before reaching other clients:
 
 ---
 
-## 🔐 Encryption Details
-
-All packets between client and server are encrypted using **AES-128 CBC**:
-
-
-![AES Encryption Flow](AES_Encryption_Flow.png)
-
-| Setting | Value |
-|---------|-------|
-| **Algorithm** | AES (Advanced Encryption Standard) |
-| **Key Length** | 128-bit (16 characters) |
-| **Mode** | CBC — Cipher Block Chaining |
-| **Padding** | PKCS7 |
-| **Key** | `MySecretKey12345` |
-| **IV** | `MySecretIV123456` (Initialization Vector) |
-| **Encoding** | Base64 for safe network text transfer |
-
-> ⚠️ **Note**: For production deployment, the key and IV should be securely stored and not hardcoded.
-
----
 
 ## ⚙️ Installation & Setup
 
@@ -300,6 +280,23 @@ When server sends a file, a file bubble appears in chat:
 ### AES-128 CBC Encryption
 
 All data transmitted is encrypted — no packet is readable on the network without the correct key and IV.
+
+All packets between client and server are encrypted using **AES-128 CBC**:
+
+
+![AES Encryption Flow](AES_Encryption_Flow.png)
+
+| Setting | Value |
+|---------|-------|
+| **Algorithm** | AES (Advanced Encryption Standard) |
+| **Key Length** | 128-bit (16 characters) |
+| **Mode** | CBC — Cipher Block Chaining |
+| **Padding** | PKCS7 |
+| **Key** | `MySecretKey12345` |
+| **IV** | `MySecretIV123456` (Initialization Vector) |
+| **Encoding** | Base64 for safe network text transfer |
+
+> ⚠️ **Note**: For production deployment, the key and IV should be securely stored and not hardcoded.
 
 ### SHA-256 Password Hashing
 
