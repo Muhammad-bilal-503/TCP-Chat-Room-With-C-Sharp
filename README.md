@@ -144,23 +144,7 @@ Solution/
 
 ### Overall Architecture
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    SERVER (Port 55555)               │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │ Server.cs│  │ClientHandler │  │  AuthService  │  │
-│  │TcpListener  │  (per client)│  │  + Database   │  │
-│  └──────────┘  └──────────────┘  └───────────────┘  │
-└─────────────────────────────────────────────────────┘
-          ↕ AES Encrypted TCP Packets
-┌─────────────────────────────────────────────────────┐
-│                    CLIENT                            │
-│  ┌─────────────┐         ┌──────────────────────┐   │
-│  │  LoginForm  │ ──────▶ │      ChatForm        │   │
-│  │ (Register/  │         │  (WhatsApp UI)       │   │
-│  │   Login)    │         └──────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-```
+![Server Client Architecture](images/Server_Client_Architecture.png)
 
 ### Authentication Flow
 
