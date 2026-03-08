@@ -152,20 +152,7 @@ Solution/
 
 ### Message Flow
 
-```
-Client A                 Server                  Client B
-   │                       │                        │
-   │── Encrypt("MSG:hi") ─▶│                        │
-   │                       │── Decrypt message      │
-   │                       │── Save to Database     │
-   │                       │── Broadcast to others  │
-   │                       │                        │
-   │                       │── Encrypt("MSG:       │
-   │                       │   ClientA: hi") ──────▶│
-   │                       │                        │
-   │                       │                    Decrypt
-   │                       │                    Show bubble
-```
+![Message_Broadcast_Flow](Message_Broadcast_Flow.png)
 
 ### Typing Indicator Flow
 
