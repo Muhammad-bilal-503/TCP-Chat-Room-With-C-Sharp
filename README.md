@@ -144,7 +144,7 @@ Solution/
 
 ### Overall Architecture
 
-![Server Client Architecture](images/Server_Client_Architecture.png)
+![Server Client Architecture](Server_Client_Architecture.png)
 
 ### Authentication Flow
 
