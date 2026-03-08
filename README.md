@@ -148,32 +148,7 @@ Solution/
 
 ### Authentication Flow
 
-```
-Client                          Server
-  │                               │
-  │──── Connect to port 55555 ───▶│
-  │                               │
-  │◀─── "AUTH_REQUIRED" ──────────│
-  │                               │
-  │──── Encrypt("LOGIN_CHECK|     │
-  │      username|password") ────▶│
-  │                               │
-  │     [Server validates with    │
-  │      SHA-256 hash in SQLite]  │
-  │                               │
-  │◀─── "LOGIN_SUCCESS" ──────────│
-  │                               │
-  │  [ChatForm opens new          │
-  │   TCP connection]             │
-  │                               │
-  │──── Encrypt("LOGIN|           │
-  │      username|password") ────▶│
-  │                               │
-  │◀─── "AUTH_SUCCESS" ───────────│
-  │◀─── Chat History (50 msgs) ───│
-  │                               │
-  │    [Chat session begins]      │
-```
+![Login_Sequence_Diagram](Login_Sequence_Diagram.png)
 
 ### Message Flow
 
