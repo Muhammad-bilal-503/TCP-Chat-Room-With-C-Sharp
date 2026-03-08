@@ -156,17 +156,7 @@ Solution/
 
 ### Typing Indicator Flow
 
-```
-Client A types...
-   │
-   │── Encrypt("TYPING:ClientA") ──▶ Server
-   │                                    │
-   │                                    │── Forward to all other clients
-   │                                    │
-   │                              Client B sees:
-   │                              "ClientA is typing..."
-   │                              (disappears after 2 seconds)
-```
+![Typing_Indicator_Flow](Typing_Indicator_Flow.png)
 
 ---
 
