@@ -326,17 +326,19 @@ Database file: `chat.db` — auto-created in the Debug folder on first run.
 
 ### Users Table
 
-```sql
-CREATE TABLE Users (
-    Id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    Username     TEXT UNIQUE NOT NULL,
-    PasswordHash TEXT NOT NULL        -- SHA-256 hash, never plain text
-);
-```
+
 
 ### Messages Table
 
-
+```sql
+CREATE TABLE Messages (
+    Id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    Sender   TEXT NOT NULL,
+    Receiver TEXT NOT NULL DEFAULT 'all',  -- 'all' = broadcast, username = private
+    Message  TEXT NOT NULL,
+    SentAt   TEXT NOT NULL                 -- ISO datetime string
+);
+```
 
 > **Note**: FILE messages are intentionally **excluded** from the Messages table.
 
