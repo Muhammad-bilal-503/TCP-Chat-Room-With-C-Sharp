@@ -336,15 +336,7 @@ CREATE TABLE Users (
 
 ### Messages Table
 
-```sql
-CREATE TABLE Messages (
-    Id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    Sender   TEXT NOT NULL,
-    Receiver TEXT NOT NULL DEFAULT 'all',  -- 'all' = broadcast, username = private
-    Message  TEXT NOT NULL,
-    SentAt   TEXT NOT NULL                 -- ISO datetime string
-);
-```
+
 
 > **Note**: FILE messages are intentionally **excluded** from the Messages table.
 
