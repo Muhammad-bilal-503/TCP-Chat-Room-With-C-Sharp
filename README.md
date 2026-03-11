@@ -1,4 +1,4 @@
-# 💬 Professional TCP Chat Application
+#  Professional TCP Chat Application
 
 ![Chat Application](https://img.shields.io/badge/Platform-Windows-blue?style=for-the-badge&logo=windows)
 ![Language](https://img.shields.io/badge/Language-C%23-purple?style=for-the-badge&logo=csharp)
@@ -11,7 +11,7 @@
 
 ---
 
-## 📋 Table of Contents
+##  Table of Contents
 
 - [Overview](#-overview)
 - [Features](#-features)
@@ -28,7 +28,7 @@
 
 ---
 
-## 🌟 Overview
+##  Overview
 
 This is a **full-featured TCP Chat Application** consisting of two separate C# projects:
 
@@ -41,16 +41,16 @@ The application supports **real-time messaging**, **user authentication**, **AES
 
 ---
 
-## ✨ Features
+##  Features
 
-### 🔐 Authentication & Security
+### Authentication & Security
 - User **Register** and **Login** system
 - Passwords stored as **SHA-256 hashes** — never stored in plain text
 - All network packets encrypted with **AES-128 CBC** encryption
 - **Duplicate login prevention** — one active session per user at a time
 - Server **password-protected force disconnect** feature
 
-### 💬 Chat Features
+###  Chat Features
 - **Real-time messaging** over TCP on Port 55555
 - **WhatsApp-style chat bubbles** — your messages on right (green), received on left (gray)
 - **Sender name** displayed above each received message
@@ -59,34 +59,34 @@ The application supports **real-time messaging**, **user authentication**, **AES
 - **System messages** displayed in center (connected, disconnected, etc.)
 - **Chat History** — last 50 messages loaded automatically on every login
 
-### 📁 File Transfer
+###  File Transfer
 - Server can **send files** to all connected clients simultaneously
 - Files displayed as **WhatsApp-style file bubbles** with:
-  - 📎 File name and size
-  - 📂 **Open** button — opens file directly
-  - 💾 **Save As** button — saves to chosen location
+  -  File name and size
+  -  **Open** button — opens file directly
+  -  **Save As** button — saves to chosen location
 - File messages are **NOT saved** to the database
 
-### 🔄 Connection Management
+###  Connection Management
 - **Auto reconnect** — automatically tries to reconnect after disconnect
 - **Manual reconnect** button available
 - Connection status indicator (🟢 Connected / 🔴 Disconnected)
 
-### 🗄️ Chat History
+###  Chat History
 - All messages **saved to SQLite database** automatically
 - **Last 50 messages** loaded on every login
 - Each user sees **only their own chat history**
 - New users start with a **clean empty chat**
 - FILE messages are excluded from history
 
-### 🎨 UI / UX
+###  UI / UX
 - **Dark theme** (default) and **Light theme** toggle
 - WhatsApp-style **rounded chat bubbles** using GDI32.dll
 - Professional server dashboard with real-time **client list**
 - **Private messaging** from server to a specific client
 - **Broadcast messaging** from server to all clients
 
-### 🖥️ Server Features
+###  Server Features
 - Start / Stop server
 - View all **connected clients** in real-time list
 - **Force disconnect** a specific client (password protected: `321`)
