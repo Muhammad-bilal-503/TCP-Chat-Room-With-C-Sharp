@@ -98,7 +98,7 @@ The application supports **real-time messaging**, **user authentication**, **AES
 
 ---
 
-## 🛠️ Technologies Used
+##  Technologies Used
 
 | Technology | Purpose |
 |------------|---------|
@@ -114,12 +114,12 @@ The application supports **real-time messaging**, **user authentication**, **AES
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 Solution/
 │
-├── 📦 ServerChat/
+├──  ServerChat/
 │   ├── 📂 Core/
 │   │   ├── Server.cs              # TcpListener, client management, broadcast, events
 │   │   └── ClientHandler.cs       # Handles each individual client connection (per thread)
@@ -144,7 +144,7 @@ Solution/
 
 ---
 
-## 🔄 Architecture & Flow
+##  Architecture & Flow
 
 ### Overall System Architecture
 
@@ -153,7 +153,7 @@ Solution/
 
 ---
 
-### 🔑 Authentication Flow
+###  Authentication Flow
 
 Two TCP connections are made when a user logs in:
 
@@ -164,7 +164,7 @@ Two TCP connections are made when a user logs in:
 
 ---
 
-### 💬 Message Broadcast Flow
+###  Message Broadcast Flow
 
 Every message travels through the server before reaching other clients:
 
@@ -173,14 +173,14 @@ Every message travels through the server before reaching other clients:
 
 ---
 
-### ⌨️ Typing Indicator Flow
+###  Typing Indicator Flow
 
 ![Typing Indicator Flow](Typing_Indicator_Flow.png)
 
 ---
 
 
-## ⚙️ Installation & Setup
+##  Installation & Setup
 
 ### Prerequisites
 
@@ -223,45 +223,45 @@ Click **Start** button in server UI → Server starts listening on port `55555`
 Right-click ClientChat → Set as Startup Project → Run (F5)
 ```
 
-> ⚠️ **Important**: Always run **ServerChat first** before any ClientChat instance.  
+>  **Important**: Always run **ServerChat first** before any ClientChat instance.  
 > You can run **multiple clients** simultaneously to test group messaging.
 
 ---
 
-## 📖 User Guide
+##  User Guide
 
-### 👤 Register an Account
+###  Register an Account
 
 1. Open **ClientChat**
 2. Enter your **Username** and **Password**
 3. Click **Register** → success message appears
 4. Click **Login** to enter the chat
 
-### 💬 Send a Message
+###  Send a Message
 
 1. Type your message in the bottom text box
 2. Press **Enter** or click **Send**
 3. Your message → **right side** (green bubble)
 4. Others' messages → **left side** (gray bubble)
 
-### 📁 Receive a File
+###  Receive a File
 
 When server sends a file, a file bubble appears in chat:
-- **📂 Open** → opens the file directly
-- **💾 Save As** → save anywhere on your computer
+- ** Open** → opens the file directly
+- ** Save As** → save anywhere on your computer
 
-### 🔄 Reconnect
+###  Reconnect
 
 - Click **Reconnect** button if connection drops
 - Or wait — the app **auto-reconnects** automatically
 
-### 🎨 Switch Theme
+###  Switch Theme
 
 - Click **Toggle Theme** → switches between **Dark** and **Light** mode
 
 ---
 
-### 🖥️ Server Dashboard Guide
+###  Server Dashboard Guide
 
 | Action | How To |
 |--------|--------|
@@ -275,7 +275,7 @@ When server sends a file, a file bubble appears in chat:
 
 ---
 
-## 🔒 Security
+##  Security
 
 ### AES-128 CBC Encryption
 
@@ -296,7 +296,7 @@ All packets between client and server are encrypted using **AES-128 CBC**:
 | **IV** | `MySecretIV123456` (Initialization Vector) |
 | **Encoding** | Base64 for safe network text transfer |
 
-> ⚠️ **Note**: For production deployment, the key and IV should be securely stored and not hardcoded.
+>  **Note**: For production deployment, the key and IV should be securely stored and not hardcoded.
 
 ### SHA-256 Password Hashing
 
@@ -320,7 +320,7 @@ User Password  ──▶  SHA-256 Hash  ──▶  Stored in SQLite
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 Database file: `chat.db` — auto-created in the Debug folder on first run.
 
@@ -350,7 +350,7 @@ CREATE TABLE Messages (
 
 ---
 
-## 📦 Packet Protocol
+##  Packet Protocol
 
 | Packet | Direction | Encrypted | Description |
 |--------|-----------|-----------|-------------|
@@ -370,7 +370,7 @@ CREATE TABLE Messages (
 
 ---
 
-## 🚀 Future Improvements
+##  Future Improvements
 
 - [ ] Group Chat Rooms / Channels
 - [ ] Message Read Receipts (double tick ✓✓)
