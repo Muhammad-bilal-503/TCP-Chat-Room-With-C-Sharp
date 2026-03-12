@@ -385,7 +385,7 @@ CREATE TABLE Messages (
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 **Muhammad Bilal**
 
@@ -393,7 +393,7 @@ CREATE TABLE Messages (
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the **MIT License**.
 
@@ -403,7 +403,7 @@ MIT License — Free to use, modify, and distribute with attribution.
 
 ---
 
-## 🙏 Acknowledgements
+##  Acknowledgements
 
 - **System.Data.SQLite** — SQLite for .NET
 - **Windows GDI32 API** — Rounded corners for chat bubbles
