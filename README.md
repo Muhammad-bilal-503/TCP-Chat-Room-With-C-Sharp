@@ -9,6 +9,7 @@
 
 > A **professional real-time TCP Chat Application** built with C# Windows Forms, featuring end-to-end **AES-128 CBC** encryption, **SHA-256** password hashing, SQLite database, WhatsApp-style UI, and a complete client-server architecture — built entirely using raw TCP Sockets.
 
+![If You Watch the the Vvideo Click here](YouTube_Thumbnail.png)
 ---
 
 ##  Table of Contents
