@@ -11,7 +11,7 @@
 
 <p align="center">
 <a href="https://www.youtube.com/watch?v=g_gPZtmxg4I">
-<img src="YouTube_Thumbnail.png" width="700" alt="Watch Demo Video">
+<img src="YouTube_Thumbnail.png" width="600" Height="300" alt="Watch Demo Video">
 </a>
 </p>
 
