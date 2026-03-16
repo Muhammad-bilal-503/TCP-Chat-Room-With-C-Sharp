@@ -1,4 +1,4 @@
-#  Professional TCP Chat Application
+# TCP Chat Room with C#
 
 ![Chat Application](https://img.shields.io/badge/Platform-Windows-blue?style=for-the-badge&logo=windows)
 ![Language](https://img.shields.io/badge/Language-C%23-purple?style=for-the-badge&logo=csharp)
